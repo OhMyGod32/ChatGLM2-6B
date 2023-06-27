@@ -3,6 +3,7 @@ import platform
 import signal
 from transformers import AutoTokenizer, AutoModel
 import readline
+import os
 import hashlib
 import sys      
 launch_log = ".\\venv\\include\\log.txt"
@@ -18,6 +19,9 @@ else:
         f.write(setlog)
 tokenizer = AutoTokenizer.from_pretrained(".\\THUDM\\chatglm2-6b", trust_remote_code=True)
 model = AutoModel.from_pretrained(".\\THUDM\\chatglm2-6b", trust_remote_code=True).cuda()
+# 多显卡支持，使用下面两行代替上面一行，将num_gpus改为你实际的显卡数量
+# from utils import load_model_on_gpus
+# model = load_model_on_gpus(".\\THUDM\\chatglm2-6b", num_gpus=2)
 model = model.eval()
 
 os_name = platform.system()
@@ -29,7 +33,7 @@ def build_prompt(history):
     prompt = "欢迎使用 ChatGLM2-6B 模型，输入内容即可进行对话，clear 清空对话历史，stop 终止程序"
     for query, response in history:
         prompt += f"\n\n用户：{query}"
-        prompt += f"\n\nChatGLM-6B：{response}"
+        prompt += f"\n\nChatGLM2-6B：{response}"
     return prompt
 
 
@@ -51,7 +55,8 @@ def main():
             os.system(clear_command)
             print("欢迎使用 ChatGLM2-6B 模型，输入内容即可进行对话，clear 清空对话历史，stop 终止程序")
             continue
-        count = 0
+        print("\nChatGLM：", end="")
+        current_length = 0
         for response, history, past_key_values in model.stream_chat(tokenizer, query, history=history,
                                                                     past_key_values=past_key_values,
                                                                     return_past_key_values=True):
@@ -59,13 +64,9 @@ def main():
                 stop_stream = False
                 break
             else:
-                count += 1
-                if count % 8 == 0:
-                    os.system(clear_command)
-                    print(build_prompt(history), flush=True)
-                    signal.signal(signal.SIGINT, signal_handler)
-        os.system(clear_command)
-        print(build_prompt(history), flush=True)
+                print(response[current_length:], end="", flush=True)
+                current_length = len(response)
+        print("")
 
 
 if __name__ == "__main__":
