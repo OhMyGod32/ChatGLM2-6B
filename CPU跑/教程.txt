@@ -1,0 +1,11 @@
+CPU跑
+
+1.
+pip3 install torch torchvision torchaudio
+
+2.
+model = AutoModel.from_pretrained("THUDM/chatglm2-6b", trust_remote_code=True).float()
+model = AutoModel.from_pretrained("THUDM/chatglm2-6b-int4",trust_remote_code=True).float()
+
+在 cpu 上运行量化后的模型需要安装 gcc 与 openmp。多数 Linux 发行版默认已安装。对于 Windows ，可在安装 TDM-GCC 时勾选 openmp。 Windows 测试环境 gcc 版本为 TDM-GCC 10.3.0， Linux 为 gcc 11.3.0。在 MacOS 上请参考 Q1。
+
