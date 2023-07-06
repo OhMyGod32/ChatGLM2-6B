@@ -2,7 +2,7 @@
 🤗 <a href="https://huggingface.co/THUDM/chatglm2-6b" target="_blank">HF Repo</a> • 🐦 <a href="https://twitter.com/thukeg" target="_blank">Twitter</a> • 📃 <a href="https://arxiv.org/abs/2103.10360" target="_blank">[GLM@ACL 22]</a> <a href="https://github.com/THUDM/GLM" target="_blank">[GitHub]</a> • 📃 <a href="https://arxiv.org/abs/2210.02414" target="_blank">[GLM-130B@ICLR 23]</a> <a href="https://github.com/THUDM/GLM-130B" target="_blank">[GitHub]</a> <br>
 </p>
 <p align="center">
-    👋 Join our <a href="https://join.slack.com/t/chatglm/shared_invite/zt-1udqapmrr-ocT1DS_mxWe6dDY8ahRWzg" target="_blank">Slack</a> and <a href="resources/WECHAT.md" target="_blank">WeChat</a>
+    👋 Join our <a href="https://join.slack.com/t/chatglm/shared_invite/zt-1y7pqoloy-9b1g6T6JjA8J0KxvUjbwJw" target="_blank">Slack</a> and <a href="resources/WECHAT.md" target="_blank">WeChat</a>
 </p>
 
 ## Introduction
@@ -19,6 +19,10 @@ ChatGLM**2**-6B is the second-generation version of the open-source bilingual (C
 The open-source ChatGLM2-6B is intended to promote the development of LLMs together with the open-source community. We earnestly request developers and everyone to abide by the [open-source license](MODEL_LICENSE). Do not use the open-source model, code, or any derivatives from the open-source project for any purposes that may harm nations or societies, or for any services that have not undergone safety assessments and legal approval. **At present, our project team has not developed any applications based on ChatGLM2-6B, including web, Android, Apple iOS, and Windows App applications.**
 
 Although the model strives to ensure the compliance and accuracy of data at each stage of training, due to the smaller scale of the ChatGLM2-6B model, and its susceptibility to probabilistic randomness, the accuracy of output content cannot be guaranteed, and the model can easily be misled. **Our project does not assume any risks or responsibilities arising from data security, public opinion risks, or any instances of the model being misled, abused, disseminated, or improperly used due to the open-source model and code.**
+
+## Projects
+Open source projects that accelerate ChatGLM2:
+* [chatglm.cpp](https://github.com/li-plus/chatglm.cpp): Real-time CPU inference on a MacBook accelerated by quantization, similar to llama.cpp.
 
 ## Evaluation
 We selected some typical Chinese and English datasets for evaluation. Below are the evaluation results of the ChatGLM2-6B model on [MMLU](https://github.com/hendrycks/test) (English), [C-Eval](https://cevalbenchmark.com/static/leaderboard.html) (Chinese), [GSM8K](https://github.com/openai/grade-school-math) (Mathematics), [BBH](https://github.com/suzgunmirac/BIG-Bench-Hard) (English).

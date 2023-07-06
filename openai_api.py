@@ -9,10 +9,11 @@ import torch
 import uvicorn
 from pydantic import BaseModel, Field
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-from starlette.responses import StreamingResponse
 from typing import Any, Dict, List, Literal, Optional, Union
 from transformers import AutoTokenizer, AutoModel
+from sse_starlette.sse import ServerSentEvent, EventSourceResponse
 import os
 import hashlib
 import sys      
@@ -38,6 +39,13 @@ async def lifespan(app: FastAPI): # collects GPU memory
 
 app = FastAPI(lifespan=lifespan)
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class ModelCard(BaseModel):
     id: str
@@ -119,7 +127,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
 
     if request.stream:
         generate = predict(query, history, request.model)
-        return StreamingResponse(generate, media_type="text/event-stream")
+        return EventSourceResponse(generate, media_type="text/event-stream")
 
     response, _ = model.chat(tokenizer, query, history=history)
     choice_data = ChatCompletionResponseChoice(
@@ -140,7 +148,7 @@ async def predict(query: str, history: List[List[str]], model_id: str):
         finish_reason=None
     )
     chunk = ChatCompletionResponse(model=model_id, choices=[choice_data], object="chat.completion.chunk")
-    yield "data: {}\n\n".format(chunk.json(exclude_unset=True, ensure_ascii=False))
+    yield "{}".format(chunk.json(exclude_unset=True, ensure_ascii=False))
 
     current_length = 0
 
@@ -157,7 +165,8 @@ async def predict(query: str, history: List[List[str]], model_id: str):
             finish_reason=None
         )
         chunk = ChatCompletionResponse(model=model_id, choices=[choice_data], object="chat.completion.chunk")
-        yield "data: {}\n\n".format(chunk.json(exclude_unset=True, ensure_ascii=False))
+        yield "{}".format(chunk.json(exclude_unset=True, ensure_ascii=False))
+
 
     choice_data = ChatCompletionResponseStreamChoice(
         index=0,
@@ -165,7 +174,9 @@ async def predict(query: str, history: List[List[str]], model_id: str):
         finish_reason="stop"
     )
     chunk = ChatCompletionResponse(model=model_id, choices=[choice_data], object="chat.completion.chunk")
-    yield "data: {}\n\n".format(chunk.json(exclude_unset=True, ensure_ascii=False))
+    yield "{}".format(chunk.json(exclude_unset=True, ensure_ascii=False))
+    yield '[DONE]'
+
 
 
 if __name__ == "__main__":
@@ -173,7 +184,7 @@ if __name__ == "__main__":
     model = AutoModel.from_pretrained(".\\THUDM\\chatglm2-6b", trust_remote_code=True).cuda()
     # 多显卡支持，使用下面两行代替上面一行，将num_gpus改为你实际的显卡数量
     # from utils import load_model_on_gpus
-    # model = load_model_on_gpus(".\\THUDM\\chatglm2-6b", num_gpus=2)
+    # model = load_model_on_gpus("THUDM/chatglm2-6b", num_gpus=2)
     model.eval()
 
     uvicorn.run(app, host='0.0.0.0', port=8000, workers=1)
