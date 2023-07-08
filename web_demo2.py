@@ -1,6 +1,5 @@
 from transformers import AutoModel, AutoTokenizer
 import streamlit as st
-from streamlit_chat import message
 import os
 import hashlib
 import sys      
@@ -29,45 +28,14 @@ def get_model():
     model = AutoModel.from_pretrained(".\\THUDM\\chatglm2-6b", trust_remote_code=True).cuda()
     # 多显卡支持，使用下面两行代替上面一行，将num_gpus改为你实际的显卡数量
     # from utils import load_model_on_gpus
-    # model = load_model_on_gpus(".\\THUDM\\chatglm2-6b", num_gpus=2)
+    # model = load_model_on_gpus("THUDM/chatglm2-6b", num_gpus=2)
     model = model.eval()
     return tokenizer, model
 
 
-MAX_TURNS = 20
-MAX_BOXES = MAX_TURNS * 2
+tokenizer, model = get_model()
 
-
-def predict(input, max_length, top_p, temperature, history=None):
-    tokenizer, model = get_model()
-    if history is None:
-        history = []
-
-    with container:
-        if len(history) > 0:
-            if len(history)>MAX_BOXES:
-                history = history[-MAX_TURNS:]
-            for i, (query, response) in enumerate(history):
-                message(query, avatar_style="big-smile", key=str(i) + "_user")
-                message(response, avatar_style="bottts", key=str(i))
-
-        message(input, avatar_style="big-smile", key=str(len(history)) + "_user")
-        st.write("AI正在回复:")
-        with st.empty():
-            for response, history in model.stream_chat(tokenizer, input, history, max_length=max_length, top_p=top_p,
-                                               temperature=temperature):
-                query, response = history[-1]
-                st.write(response)
-
-    return history
-
-
-container = st.container()
-
-# create a prompt text for the text generation
-prompt_text = st.text_area(label="用户命令输入",
-            height = 100,
-            placeholder="请在这儿输入您的命令")
+st.title("ChatGLM2-6B")
 
 max_length = st.sidebar.slider(
     'max_length', 0, 32768, 8192, step=1
@@ -76,13 +44,40 @@ top_p = st.sidebar.slider(
     'top_p', 0.0, 1.0, 0.8, step=0.01
 )
 temperature = st.sidebar.slider(
-    'temperature', 0.0, 1.0, 0.95, step=0.01
+    'temperature', 0.0, 1.0, 0.8, step=0.01
 )
 
-if 'state' not in st.session_state:
-    st.session_state['state'] = []
+if 'history' not in st.session_state:
+    st.session_state.history = []
 
-if st.button("发送", key="predict"):
-    with st.spinner("AI正在思考，请稍等........"):
-        # text generation
-        st.session_state["state"] = predict(prompt_text, max_length, top_p, temperature, st.session_state["state"])
+if 'past_key_values' not in st.session_state:
+    st.session_state.past_key_values = None
+
+for i, (query, response) in enumerate(st.session_state.history):
+    with st.chat_message(name="user", avatar="user"):
+        st.markdown(query)
+    with st.chat_message(name="assistant", avatar="assistant"):
+        st.markdown(response)
+with st.chat_message(name="user", avatar="user"):
+    input_placeholder = st.empty()
+with st.chat_message(name="assistant", avatar="assistant"):
+    message_placeholder = st.empty()
+
+prompt_text = st.text_area(label="用户命令输入",
+                           height=100,
+                           placeholder="请在这儿输入您的命令")
+
+button = st.button("发送", key="predict")
+
+if button:
+    input_placeholder.markdown(prompt_text)
+    history, past_key_values = st.session_state.history, st.session_state.past_key_values
+    for response, history, past_key_values in model.stream_chat(tokenizer, prompt_text, history,
+                                                                past_key_values=past_key_values,
+                                                                max_length=max_length, top_p=top_p,
+                                                                temperature=temperature,
+                                                                return_past_key_values=True):
+        message_placeholder.markdown(response)
+
+    st.session_state.history = history
+    st.session_state.past_key_values = past_key_values

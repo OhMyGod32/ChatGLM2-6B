@@ -137,7 +137,11 @@ git clone https://github.com/THUDM/ChatGLM2-6B
 cd ChatGLM2-6B
 ```
 
-然后使用 pip 安装依赖：`pip install -r requirements.txt`，其中 `transformers` 库版本推荐为 `4.30.2`，`torch` 推荐使用 2.0 以上的版本，以获得最佳的推理性能。
+然后使用 pip 安装依赖：
+```
+pip install -r requirements.txt
+```
+其中 `transformers` 库版本推荐为 `4.30.2`，`torch` 推荐使用 2.0 及以上的版本，以获得最佳的推理性能。
 
 ### 代码调用 
 
@@ -188,23 +192,17 @@ GIT_LFS_SKIP_SMUDGE=1 git clone https://huggingface.co/THUDM/chatglm2-6b
 
 ![web-demo](resources/web-demo.gif)
 
-首先安装 Gradio：`pip install gradio`，然后运行仓库中的 [web_demo.py](web_demo.py)： 
-
+可以通过以下命令启动基于 Streamlit 的网页版 demo：
 ```shell
-python web_demo.py
+streamlit run web_demo2.py
 ```
 
 程序会运行一个 Web Server，并输出地址。在浏览器中打开输出的地址即可使用。
-> 默认使用了 `share=False` 启动，不会生成公网链接。如有需要公网访问的需求，可以修改为 `share=True` 启动。
-> 
 
-感谢 [@AdamBear](https://github.com/AdamBear) 实现了基于 Streamlit 的网页版 Demo `web_demo2.py`。使用时首先需要额外安装以下依赖：
+
+[web_demo.py](./web_demo.py) 中提供了旧版基于 Gradio 的 web demo，可以通过如下命令运行：
 ```shell
-pip install streamlit streamlit-chat
-```
-然后通过以下命令运行：
-```shell
-streamlit run web_demo2.py
+python web_demo.py
 ```
 经测试，如果输入的 prompt 较长的话，使用基于 Streamlit 的网页版 Demo 会更流畅。
 
@@ -319,7 +317,7 @@ model = load_model_on_gpus("THUDM/chatglm2-6b", num_gpus=2)
 
 ## 协议
 
-本仓库的代码依照 [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) 协议开源，ChatGLM2-6B 模型的权重的使用则需要遵循 [Model License](MODEL_LICENSE)。ChatGLM2-6B 权重对学术研究**完全开放**，在获得官方的书面许可后，亦**允许商业使用**。如果您发现我们的开源模型对您的业务有用，我们欢迎您对下一代模型 ChatGLM3 研发的捐赠。申请商用许可与捐赠请联系 [yiwen.xu@zhipuai.cn](mailto:yiwen.xu@zhipuai.cn)。 
+本仓库的代码依照 [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) 协议开源，ChatGLM2-6B 模型的权重的使用则需要遵循 [Model License](MODEL_LICENSE)。ChatGLM2-6B 权重对学术研究**完全开放**，在获得官方的书面许可后，亦**允许商业使用**。如果您发现我们的开源模型对您的业务有用，我们欢迎您对下一代模型 ChatGLM3 研发的捐赠。申请商用许可与捐赠请联系 [license@zhipuai.cn](mailto:license@zhipuai.cn)。 
 
 
 ## 引用
