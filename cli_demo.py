@@ -17,8 +17,8 @@ else:
     setlog = ':'.join(hex(i)[2:].zfill(2) for i in hashlib.md5(':'.join(os.popen('getmac').readline().strip().split('-')).encode()).digest()[6:12])
     with open(launch_log, 'w') as f:
         f.write(setlog)
-tokenizer = AutoTokenizer.from_pretrained(".\\THUDM\\chatglm2-6b", trust_remote_code=True)
-model = AutoModel.from_pretrained(".\\THUDM\\chatglm2-6b", trust_remote_code=True).cuda()
+tokenizer = AutoTokenizer.from_pretrained(".\\THUDM\\chatglm2-6b-int4", trust_remote_code=True)
+model = AutoModel.from_pretrained(".\\THUDM\\chatglm2-6b-int4", trust_remote_code=True).cuda()
 # 多显卡支持，使用下面两行代替上面一行，将num_gpus改为你实际的显卡数量
 # from utils import load_model_on_gpus
 # model = load_model_on_gpus(".\\THUDM\\chatglm2-6b", num_gpus=2)
