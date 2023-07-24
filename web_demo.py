@@ -2,20 +2,7 @@ from transformers import AutoModel, AutoTokenizer
 import gradio as gr
 import mdtex2html
 from utils import load_model_on_gpus
-import os
-import hashlib
-import sys      
-launch_log = ".\\venv\\include\\log.txt"
-if os.path.exists(launch_log):
-    with open(launch_log, 'r') as f:
-        saved_log = f.read().strip()
-    setlog = ':'.join(hex(i)[2:].zfill(2) for i in hashlib.md5(':'.join(os.popen('getmac').readline().strip().split('-')).encode()).digest()[6:12])
-    if setlog != saved_log:
-        sys.exit()
-else:
-    setlog = ':'.join(hex(i)[2:].zfill(2) for i in hashlib.md5(':'.join(os.popen('getmac').readline().strip().split('-')).encode()).digest()[6:12])
-    with open(launch_log, 'w') as f:
-        f.write(setlog)
+
 tokenizer = AutoTokenizer.from_pretrained(".\\THUDM\\chatglm2-6b-int4", trust_remote_code=True)
 model = AutoModel.from_pretrained(".\\THUDM\\chatglm2-6b-int4", trust_remote_code=True).cuda()
 # 多显卡支持，使用下面两行代替上面一行，将num_gpus改为你实际的显卡数量
@@ -83,7 +70,35 @@ def predict(input, chatbot, max_length, top_p, temperature, history, past_key_va
 
         yield chatbot, history, past_key_values
 
+import os
+import hashlib
+import sys
+import netifaces
 
+def get_mac_address():
+    for interface in netifaces.interfaces():
+        if "loopback" not in interface.lower():
+            mac = netifaces.ifaddresses(interface).get(netifaces.AF_LINK)
+            if mac:
+                return mac[0]["addr"]
+    return None
+
+def get_mac_md5():
+    return hashlib.md5(get_mac_address().encode()).digest()[6:12]
+
+def get_hex_md5():
+    return ':'.join(f"{i:02x}" for i in get_mac_md5())
+
+launch_log = "./venv/include/log.txt"
+
+if os.path.exists(launch_log):
+    with open(launch_log, 'r') as f:
+        saved_log = f.read().strip()
+    if get_hex_md5() != saved_log:
+        sys.exit()
+else:
+    with open(launch_log, 'w') as f:
+        f.write(get_hex_md5())
 def reset_user_input():
     return gr.update(value='')
 
@@ -119,3 +134,4 @@ with gr.Blocks() as demo:
     emptyBtn.click(reset_state, outputs=[chatbot, history, past_key_values], show_progress=True)
 
 demo.queue().launch(share=False, inbrowser=True)
+#demo.queue().launch(share=False, inbrowser=True, server_name='0.0.0.0', server_port=7860)

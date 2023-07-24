@@ -16,7 +16,9 @@ ChatGLM**2**-6B 是开源中英双语对话模型 [ChatGLM-6B](https://github.co
 1. **更强大的性能**：基于 ChatGLM 初代模型的开发经验，我们全面升级了 ChatGLM2-6B 的基座模型。ChatGLM2-6B 使用了 [GLM](https://github.com/THUDM/GLM) 的混合目标函数，经过了 1.4T 中英标识符的预训练与人类偏好对齐训练，[评测结果](#评测结果)显示，相比于初代模型，ChatGLM2-6B 在 MMLU（+23%）、CEval（+33%）、GSM8K（+571%） 、BBH（+60%）等数据集上的性能取得了大幅度的提升，在同尺寸开源模型中具有较强的竞争力。
 2. **更长的上下文**：基于 [FlashAttention](https://github.com/HazyResearch/flash-attention) 技术，我们将基座模型的上下文长度（Context Length）由 ChatGLM-6B 的 2K 扩展到了 32K，并在对话阶段使用 8K 的上下文长度训练，允许更多轮次的对话。但当前版本的 ChatGLM2-6B 对单轮超长文档的理解能力有限，我们会在后续迭代升级中着重进行优化。
 3. **更高效的推理**：基于 [Multi-Query Attention](http://arxiv.org/abs/1911.02150) 技术，ChatGLM2-6B 有更高效的推理速度和更低的显存占用：在官方的模型实现下，推理速度相比初代提升了 42%，INT4 量化下，6G 显存支持的对话长度由 1K 提升到了 8K。
-4. **更开放的协议**：ChatGLM2-6B 权重对学术研究**完全开放**，在获得官方的书面许可后，亦**允许商业使用**。如果您发现我们的开源模型对您的业务有用，我们欢迎您对下一代模型 ChatGLM3 研发的捐赠。
+4. **更开放的协议**：ChatGLM2-6B 权重对学术研究**完全开放**，在填写[问卷](https://open.bigmodel.cn/mla/form)进行登记后**亦允许免费商业使用**。
+
+欢迎通过 [chatglm.cn](https://chatglm.cn) 体验更大规模的 ChatGLM 模型。
 
 -----
 
@@ -31,6 +33,7 @@ ChatGLM2-6B 开源模型旨在与开源社区一起推动大模型技术发展�
 对 ChatGLM2 进行加速的开源项目：
 * [fastllm](https://github.com/ztxz16/fastllm/): 全平台加速推理方案，单GPU批量推理每秒可达10000+token，手机端最低3G内存实时运行（骁龙865上约4~5 token/s）
 * [chatglm.cpp](https://github.com/li-plus/chatglm.cpp): 类似 llama.cpp 的 CPU 量化加速推理方案，实现 Mac 笔记本上实时对话
+* [ChatGLM2-TPU](https://github.com/sophgo/ChatGLM2-TPU): 采用TPU加速推理方案，在算能端侧芯片BM1684X（16T@FP16，内存16G）上实时运行约3 token/s
 
 支持 ChatGLM-6B 和相关应用在线训练的示例项目：
 * [ChatGLM2-6B 的部署与微调教程](https://www.heywhale.com/mw/project/64984a7b72ebe240516ae79c)
@@ -192,22 +195,20 @@ GIT_LFS_SKIP_SMUDGE=1 git clone https://huggingface.co/THUDM/chatglm2-6b
 模型的实现仍然处在变动中。如果希望固定使用的模型实现以保证兼容性，可以在 `from_pretrained` 的调用中增加 `revision="v1.0"` 参数。`v1.0` 是当前最新的版本号，完整的版本列表参见 [Change Log](https://huggingface.co/THUDM/chatglm2-6b#change-log)。
 
 ### 网页版 Demo
-
 ![web-demo](resources/web-demo.gif)
+可以通过以下命令启动基于 Gradio 的网页版 demo：
+```shell
+python web_demo.py
+```
+
+![web-demo](resources/web-demo2.gif)
 
 可以通过以下命令启动基于 Streamlit 的网页版 demo：
 ```shell
 streamlit run web_demo2.py
 ```
 
-程序会运行一个 Web Server，并输出地址。在浏览器中打开输出的地址即可使用。
-
-
-[web_demo.py](./web_demo.py) 中提供了旧版基于 Gradio 的 web demo，可以通过如下命令运行：
-```shell
-python web_demo.py
-```
-经测试，如果输入的 prompt 较长的话，使用基于 Streamlit 的网页版 Demo 会更流畅。
+网页版 demo 会运行一个 Web Server，并输出地址。在浏览器中打开输出的地址即可使用。 经测试，基于 Streamlit 的网页版 Demo 会更流畅。
 
 ### 命令行 Demo
 
@@ -270,18 +271,10 @@ if __name__ == "__main__":
 默认情况下，模型以 FP16 精度加载，运行上述代码需要大概 13GB 显存。如果你的 GPU 显存有限，可以尝试以量化方式加载模型，使用方法如下：
 
 ```python
-# 按需修改，目前只支持 4/8 bit 量化
-model = AutoModel.from_pretrained("THUDM/chatglm2-6b", trust_remote_code=True).quantize(8).cuda()
-```
-
-模型量化会带来一定的性能损失，经过测试，ChatGLM2-6B 在 4-bit 量化下仍然能够进行自然流畅的生成。
-
-如果你的内存不足，可以直接加载量化后的模型：
-```python
 model = AutoModel.from_pretrained("THUDM/chatglm2-6b-int4",trust_remote_code=True).cuda()
 ```
 
-<!-- 量化模型的参数文件也可以从[这里](https://cloud.tsinghua.edu.cn/d/674208019e314311ab5c/)手动下载。 -->
+模型量化会带来一定的性能损失，经过测试，ChatGLM2-6B 在 4-bit 量化下仍然能够进行自然流畅的生成。 量化模型的参数文件也可以从[这里](https://cloud.tsinghua.edu.cn/d/674208019e314311ab5c/)手动下载。
 
 ### CPU 部署
 
@@ -320,7 +313,7 @@ model = load_model_on_gpus("THUDM/chatglm2-6b", num_gpus=2)
 
 ## 协议
 
-本仓库的代码依照 [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) 协议开源，ChatGLM2-6B 模型的权重的使用则需要遵循 [Model License](MODEL_LICENSE)。ChatGLM2-6B 权重对学术研究**完全开放**，在获得官方的书面许可后，亦**允许商业使用**。如果您发现我们的开源模型对您的业务有用，我们欢迎您对下一代模型 ChatGLM3 研发的捐赠。申请商用许可与捐赠请联系 [license@zhipuai.cn](mailto:license@zhipuai.cn)。 
+本仓库的代码依照 [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) 协议开源，ChatGLM2-6B 模型的权重的使用则需要遵循 [Model License](MODEL_LICENSE)。ChatGLM2-6B 权重对学术研究**完全开放**，在填写[问卷](https://open.bigmodel.cn/mla/form)进行登记后**亦允许免费商业使用**。
 
 
 ## 引用
